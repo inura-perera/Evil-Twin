@@ -1,0 +1,74 @@
+import pickle
+import pandas as pd
+import sys
+import os
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python3 pickler.py <filename>")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+    csv_filepath = os.path.join("Captures", f"{filename}.csv")
+
+
+    # Load
+    with open('random_forest_model.pkl', 'rb') as file:
+        model = pickle.load(file)
+
+    try:
+        # Load the CSV file
+        df = pd.read_csv(csv_filepath)
+
+        # Filter DataFrame based on type_subtype
+        df = df[df['wlan.fc.type_subtype'].isin(['0x0008', '0x0005'])]
+
+        # Convert hexadecimal strings to numeric (integer) values
+        df['wlan.fc.type_subtype'] = df['wlan.fc.type_subtype'].apply(lambda x: int(x, 16))
+        df['wlan.fc.ds'] = df['wlan.fc.ds'].apply(lambda x: int(x, 16))
+
+        # Drop rows where bssid value is 0
+        df = df[df['bssid'] != '0']
+
+        # Keep a copy of the 'bssid' column for later use
+        bssid_column = df['bssid'].copy()
+
+        # Drop the 'bssid' column from the DataFrame for prediction
+        df = df.drop(columns=['bssid'])
+
+        # Predict the target variable using the model
+        predictions = model.predict(df)
+
+        # Count evil_twin and normal instances
+        count_evil_twin = sum(predictions == 'evil_twin')
+        count_normal = sum(predictions == 'normal')
+
+        # Identify the bssid of evil twin instances
+        evil_twin_bssids = bssid_column[predictions == 'evil_twin']
+        evil_twin_counts = evil_twin_bssids.value_counts()
+
+        # Check if there are any evil twins and if their count is below the threshold
+        if evil_twin_counts.empty or evil_twin_counts.sum() < 10:
+            print("\nThere is NO Evil Twin in the Search.\n")
+            # Consider all BSSIDs as normal if count < 10
+            normal_bssid_column = bssid_column
+        else:
+            print("\nBSSID of Evil Twin Instances:")
+            evil_twin_bssids_high_count = evil_twin_counts[evil_twin_counts >= 10].index
+            for bssid in evil_twin_bssids_high_count:
+                print(f"BSSID: {bssid}")
+
+            # Remove BSSIDs that are considered evil twins from normal BSSIDs
+            normal_bssid_column = bssid_column[~bssid_column.isin(evil_twin_bssids_high_count)]
+
+        # Count unique BSSID values for normal instances
+        normal_bssid_counts = normal_bssid_column.value_counts()
+        print("\nUnique BSSID Normal Instances:\n")
+        for bssid, count in normal_bssid_counts.items():
+            print(f"BSSID: {bssid}")
+
+    except FileNotFoundError:
+        print(f"Error: File '{csv_filepath}' not found.")
+
+if __name__ == "__main__":
+    main()
