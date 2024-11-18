@@ -150,8 +150,6 @@ process_capture() {
     
     python3 "$SCRIPT_DIR/Python_Files/pcapercsv.py" "$filename"
     
-    clear
-    
     python3 "$SCRIPT_DIR/Python_Files/pickler.py" "$filename"
 }
 
