@@ -1,6 +1,23 @@
 #!/bin/bash
 
-mkdir -p Captures
+# PID file location
+PIDFILE="/tmp/www-data-pids/wifi_captuer_script.pid"
+
+# Check if the PID file exists and the process is still running
+if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE) 2>/dev/null; then
+    echo "Error: Script is already running (PID: $(cat $PIDFILE))"
+    exit 1
+fi
+
+# Write current PID to the PID file
+echo $$ > $PIDFILE
+
+# Get the directory of the script
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+CAPTURES_DIR="$SCRIPT_DIR/Captures"
+
+# Create the Captures directory
+mkdir -p "$CAPTURES_DIR"
 
 # Function to select network interface
 select_interface() {
@@ -30,17 +47,18 @@ select_interface() {
 # Function to generate a filename based on date and time
 generate_filename() {
     filename=$(date +"%Y%m%d_%H%M%S")
+    echo "File Name : $filename"
 }
 
 # Function to switch to monitor mode
 switch_to_monitor_mode() {
-    mode=$(iwconfig $iface | grep "Mode:Monitor")
+    mode=$(iwconfig "$iface" | grep "Mode:Monitor")
     if [ -z "$mode" ]; then
         echo " "
         echo "$iface is not in monitor mode. Switching to monitor mode..."
-        sudo ifconfig $iface down
-        sudo iwconfig $iface mode monitor
-        sudo ifconfig $iface up
+        sudo ifconfig "$iface" down
+        sudo iwconfig "$iface" mode monitor
+        sudo ifconfig "$iface" up
     else
         echo " "
         echo "$iface is already in monitor mode. Skipping mode change."
@@ -54,16 +72,16 @@ start_capture() {
     CHANNELS=(1 6 11)
 
     # Time to spend on each channel (in seconds)
-    DWELL_TIME=15
+    DWELL_TIME=10
 
     # Total capture time (in seconds)
-    TOTAL_TIME=45
+    TOTAL_TIME=30
 
     # Calculate the number of iterations needed (channels x dwell time)
     MAX_ITERATIONS=$((TOTAL_TIME / DWELL_TIME))
 
     # Start tcpdump in the background and capture packets
-    sudo tcpdump -i $iface -w "Captures/${filename}.pcap" &
+    sudo tcpdump -i "$iface" -w "$CAPTURES_DIR/${filename}.pcap" &
     TCPDUMP_PID=$!
     # Wait for 2 seconds before starting channel hopping
     sleep 2
@@ -78,7 +96,7 @@ start_capture() {
             fi
            
             # Change to the specified channel
-            sudo iwconfig $iface channel $CHANNEL
+            sudo iwconfig "$iface" channel "$CHANNEL"
             echo "Switched to channel $CHANNEL"
 
             # Increment the iteration count
@@ -90,13 +108,13 @@ start_capture() {
     done
 
     # Stop tcpdump after the capture is complete
-    sudo kill $TCPDUMP_PID
+    sudo kill "$TCPDUMP_PID"
 }
 
 # Function to process pcap and run airodump-ng followed by Python scripts
 process_capture() {
     # Convert pcap file to JSON using tshark
-    tshark -r "Captures/${filename}.pcap" -T json > "Captures/${filename}.json"
+    tshark -r "$CAPTURES_DIR/${filename}.pcap" -T json > "$CAPTURES_DIR/${filename}.json"
     echo " "
     echo "Capture complete. Files saved as ${filename}.pcap and ${filename}.json"
 
@@ -104,49 +122,47 @@ process_capture() {
     INTERFACE="$iface"
     
     # Define the output file for airodump-ng (use the same filename)
-    OUTPUT_FILE="Captures/${filename}_airodump"
+    OUTPUT_FILE="$CAPTURES_DIR/${filename}_airodump"
 
     # Run airodump-ng in the background and save the process ID
-    sudo airodump-ng --write-interval 1 --output-format csv --write $OUTPUT_FILE $INTERFACE &
+    sudo airodump-ng --write-interval 1 --output-format csv --write "$OUTPUT_FILE" "$INTERFACE" &
     AIRODUMP_PID=$!
 
     # Sleep for 15 seconds (or modify as per your needs)
     sleep 15
 
     # Kill the airodump-ng process
-    kill $AIRODUMP_PID
+    kill "$AIRODUMP_PID"
 
     # Wait for the process to terminate
-    wait $AIRODUMP_PID 2>/dev/null
+    wait "$AIRODUMP_PID" 2>/dev/null
 
     echo "Airodump-ng capture saved as ${filename}_airodump.csv"
     
     # Rename the airodump file with the correct full path
-    sudo mv "Captures/${filename}_airodump-01.csv" "Captures/${filename}_airodump.csv"
-    
+    sudo mv "$CAPTURES_DIR/${filename}_airodump-01.csv" "$CAPTURES_DIR/${filename}_airodump.csv"
     
     # Call Python script with filename as argument
-    sudo python3 Python_Files/airodump_to_csv.py "$filename"
+    sudo python3 "$SCRIPT_DIR/Python_Files/airodump_to_csv.py" "$filename"
     
-    python3 Python_Files/pcapercsv.py "$filename"
+    python3 "$SCRIPT_DIR/Python_Files/pcapercsv.py" "$filename"
     
     clear
     
-    python3 Python_Files/pickler.py "$filename"
-
+    python3 "$SCRIPT_DIR/Python_Files/pickler.py" "$filename"
 }
 
-compress_archive (){
-
+compress_archive() {
     # Remove the CSV file after processing
-    rm Captures/${filename}.csv
+    sudo rm "$CAPTURES_DIR/${filename}.csv"
 
     # Create a tar.gz archive of all relevant files in the Captures directory
-    tar -czf Captures/${filename}.tar.gz Captures/${filename}.pcap Captures/${filename}.json Captures/${filename}_airodump.csv
+   sudo  tar -czf "$CAPTURES_DIR/${filename}.tar.gz" "$CAPTURES_DIR/${filename}.pcap" "$CAPTURES_DIR/${filename}.json" "$CAPTURES_DIR/${filename}_airodump.csv"
 
     # Remove all original files starting with ${filename} except for the tar.gz file
-    sudo rm Captures/${filename}.pcap Captures/${filename}.json Captures/${filename}_airodump.csv
+    sudo rm "$CAPTURES_DIR/${filename}.pcap" "$CAPTURES_DIR/${filename}.json" "$CAPTURES_DIR/${filename}_airodump.csv"
 }
+
 
 
 
