@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 # PID file location
 PIDFILE="/tmp/evil_twin/wifi_captuer_script.pid"
 
