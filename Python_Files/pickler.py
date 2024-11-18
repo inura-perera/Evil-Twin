@@ -105,15 +105,15 @@ def main():
         print("Usage: python3 pickler.py <filename>")
         sys.exit(1)
 
-    filename = sys.argv[1]
-    result = detect_evil_twin(filename)
+    # filename = sys.argv[1]
+    # result = detect_evil_twin(filename)
 
-    # Write the result to a JSON file in the Captures directory
-    json_output_filepath = os.path.join(BASE_DIR, "../Captures", "flask_api.json")
-    with open(json_output_filepath, 'w') as json_file:
-        json.dump(result, json_file, indent=4)
+    # # Write the result to a JSON file in the Captures directory
+    # json_output_filepath = os.path.join(BASE_DIR, "../Captures", "flask_api.json")
+    # with open(json_output_filepath, 'w') as json_file:
+    #     json.dump(result, json_file, indent=4)
 
-    print(f"\nOutput written to {json_output_filepath}")
+    # print(f"\nOutput written to {json_output_filepath}")
 
 if __name__ == "__main__":
     main()

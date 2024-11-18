@@ -4,7 +4,7 @@
 PIDFILE="/tmp/evil_twin/wifi_captuer_script.pid"
 
 # Ensure the directory exists
-#mkdir -p "$(dirname "$PIDFILE")"
+mkdir -p "$(dirname "$PIDFILE")"
 
 # Check if the PID file exists and the process is still running
 if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
