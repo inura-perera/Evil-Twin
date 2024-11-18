@@ -1,16 +1,21 @@
 #!/bin/bash
 
+#!/bin/bash
+
 # PID file location
-PIDFILE="/tmp/www-data-pids/wifi_captuer_script.pid"
+PIDFILE="/tmp/evil_twin/wifi_captuer_script.pid"
+
+# Ensure the directory exists
+#mkdir -p "$(dirname "$PIDFILE")"
 
 # Check if the PID file exists and the process is still running
-if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE) 2>/dev/null; then
+if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
     echo "Error: Script is already running (PID: $(cat $PIDFILE))"
     exit 1
 fi
 
 # Write current PID to the PID file
-echo $$ > $PIDFILE
+echo $$ > "$PIDFILE"
 
 # Get the directory of the script
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
