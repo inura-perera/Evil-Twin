@@ -1,0 +1,69 @@
+import pickle
+import pandas as pd
+import sys
+
+def main():
+    # Get the filename from the command-line arguments
+    if len(sys.argv) != 2:
+        print("Usage: python3 pickler.py <filename>")
+        sys.exit(1)
+    
+    filename = sys.argv[1]
+    csv_filepath = f"{filename}.csv"
+    
+    # Load the pickle file
+    with open('random_forest_model.pkl', 'rb') as file:
+        model = pickle.load(file)
+    
+    try:
+        # Load the CSV file
+        df = pd.read_csv(csv_filepath)
+        
+        # Filter DataFrame based on type_subtype
+        df = df[df['wlan.fc.type_subtype'].isin(['0x0008', '0x0005'])]
+
+        # Convert hexadecimal strings to numeric (integer) values
+        df['wlan.fc.type_subtype'] = df['wlan.fc.type_subtype'].apply(lambda x: int(x, 16))
+        df['wlan.fc.ds'] = df['wlan.fc.ds'].apply(lambda x: int(x, 16))
+
+        # Drop rows where bssid value is 0
+        df = df[df['bssid'] != '0']
+
+        # Keep a copy of the 'bssid' column for later use
+        bssid_column = df['bssid'].copy()
+
+        # Drop the 'bssid' column from the DataFrame for prediction
+        df = df.drop(columns=['bssid'])
+
+        # Predict the target variable using the model
+        predictions = model.predict(df)
+
+        # Count evil_twin and normal instances
+        count_evil_twin = sum(predictions == 'evil_twin')
+        count_normal = sum(predictions == 'normal')
+        #print("Evil Twin:", count_evil_twin, " Normal:", count_normal, "\n")
+
+        # Identify the bssid of evil twin instances
+        evil_twin_bssids = bssid_column[predictions == 'evil_twin']
+        evil_twin_counts = evil_twin_bssids.value_counts()
+        print("\nBSSID of Evil Twin Instances:")
+        for bssid, count in evil_twin_counts.items():
+            	print(f"BSSID: {bssid}")
+            
+            	# If evil twin count > 10, print a warning message
+            	if count > 10:
+                	print(f"BSSID: {bssid} could be an evil twin\n")
+
+        # Identify the bssid of normal instances
+        normal_bssid_column = bssid_column[predictions == 'normal']
+        # Count unique bssid values for normal instances
+        normal_bssid_counts = normal_bssid_column.value_counts()
+        print("Unique BSSID Normal Instances:")
+        for bssid, count in normal_bssid_counts.items():
+            print(f"BSSID: {bssid}")
+    
+    except FileNotFoundError:
+        print(f"Error: File '{csv_filepath}' not found.")
+    
+if __name__ == "__main__":
+    main()

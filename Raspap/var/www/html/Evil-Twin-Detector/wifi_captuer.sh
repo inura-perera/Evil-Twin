@@ -21,27 +21,30 @@ mkdir -p "$CAPTURES_DIR"
 
 # Function to select network interface
 select_interface() {
-    while true; do
-        echo "Available network interfaces:"
-        
-        # Get and number the interfaces
-        interfaces=($(ip -o link show | awk -F': ' '{print $2}'))
-        for i in "${!interfaces[@]}"; do
-            echo "$((i+1)). ${interfaces[$i]}"
-        done
-        echo " "
+    echo "Available network interfaces:"
+    
+    # Get and number the interfaces
+    interfaces=($(ip -o link show | awk -F': ' '{print $2}'))
+    for i in "${!interfaces[@]}"; do
+        echo "$((i+1)). ${interfaces[$i]}"
+    done
+    echo " "
 
-        echo "Enter the number corresponding to the interface you want to use:"
-        read iface_number
-
-        # Validate the user input
-        if [[ "$iface_number" =~ ^[0-9]+$ ]] && [ "$iface_number" -ge 1 ] && [ "$iface_number" -le "${#interfaces[@]}" ]; then
-            iface=${interfaces[$((iface_number-1))]}
+    # Automatically select wlan1 and find its number
+    iface="wlan1"
+    iface_number=""
+    for i in "${!interfaces[@]}"; do
+        if [ "${interfaces[$i]}" == "$iface" ]; then
+            iface_number=$((i+1))
             break
-        else
-            echo "Error: Invalid input. Please enter a valid number."
         fi
     done
+
+    if [ -n "$iface_number" ]; then
+        echo "Selecting interface: $iface_number. $iface"
+    else
+        echo "Error: $iface not found."
+    fi
 }
 
 # Function to generate a filename based on date and time
@@ -152,6 +155,22 @@ process_capture() {
     python3 "$SCRIPT_DIR/Python_Files/pickler.py" "$filename"
 }
 
+flaskapi() {
+    # Check if there is a process using port 5000
+    if lsof -i :5000; then
+        # If a process is found, extract the PID and kill it
+        PID=$(lsof -ti :5000)
+        echo "Killing existing Flask server with PID: $PID"
+        kill "$PID"
+    else
+        echo "No existing process found on port 5000."
+    fi
+
+    # Start the Flask API in the background and capture its PID
+    python3 "$SCRIPT_DIR/Python_Files/flaskapi.py" &
+    FLASK_PID=$!  # Capture the PID of the last background command
+}
+
 compress_archive() {
     # Remove the CSV file after processing
     sudo rm "$CAPTURES_DIR/${filename}.csv"
@@ -163,15 +182,19 @@ compress_archive() {
     sudo rm "$CAPTURES_DIR/${filename}.pcap" "$CAPTURES_DIR/${filename}.json" "$CAPTURES_DIR/${filename}_airodump.csv"
 }
 
-
-
-
 # Execute the script
 select_interface
 generate_filename
 switch_to_monitor_mode
 start_capture
 process_capture
+flaskapi
+# Wait for 5 seconds
+sleep 5
+
+# Kill the Flask API process
+kill "$FLASK_PID"
+
 compress_archive
 
 # Clean up the PID file after finishing

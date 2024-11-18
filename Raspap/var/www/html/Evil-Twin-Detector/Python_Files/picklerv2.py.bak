@@ -2,21 +2,19 @@ import pickle
 import pandas as pd
 import sys
 import os
-import json
 
+def main():
+    # Get the filename from the command-line arguments
+    if len(sys.argv) != 2:
+        print("Usage: python3 pickler.py <filename>")
+        sys.exit(1)
 
-
-def detect_evil_twin(filename):
-    # Dynamically set BASE_DIR to the directory where the script is located
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # Use BASE_DIR to create paths
-    csv_filepath = os.path.join(BASE_DIR, "../Captures", f"{filename}.csv")
-    airodump_filepath = os.path.join(BASE_DIR, "../Captures", f"{filename}_airodump.csv")
-    model_filepath = os.path.join(BASE_DIR, "../Model", "random_forest_model.pkl")
+    filename = sys.argv[1]
+    csv_filepath = os.path.join("Captures", f"{filename}.csv")
+    airodump_filepath = os.path.join("Captures", f"{filename}_airodump.csv")
 
     # Load the pickle file
-    with open(model_filepath, 'rb') as file:
+    with open('Model/random_forest_model.pkl', 'rb') as file:
         model = pickle.load(file)
 
     try:
@@ -50,18 +48,14 @@ def detect_evil_twin(filename):
         # Identify the BSSIDs of evil twin instances
         evil_twin_bssids = bssid_column[predictions == 'evil_twin'].unique()
 
-        json_output = {'evil_twins': {}, 'normal': {}}
-
         # Check if there are any evil twins
         if evil_twin_bssids.size == 0:
             print("\nThere is NO Evil Twin in the Search.\n")
-            json_output['status'] = 1  # All instances are normal
             # Consider all BSSIDs as normal if no evil twins
             normal_bssid_column = bssid_column.unique()
         else:
             print("\nBSSID of Evil Twin Instances:")
-            json_output['status'] = 0  # Evil twins found
-            for idx, bssid in enumerate(evil_twin_bssids, start=1):
+            for bssid in evil_twin_bssids:
                 bssid_upper = bssid.upper()
                 df_evil_twin_bssid = df_airodump[df_airodump['BSSID'] == bssid_upper]
                 if not df_evil_twin_bssid.empty:
@@ -69,15 +63,15 @@ def detect_evil_twin(filename):
                 else:
                     essid = "Unknown"
                 print(f"BSSID: {bssid} | SSID: {essid}")
-                # Create dynamic keys for evil twins
-                json_output['evil_twins'][f'wifi{idx}'] = {'BSSID': bssid, 'SSID': essid}
 
             # Remove BSSIDs that are considered evil twins from normal BSSIDs
             normal_bssid_column = bssid_column[~bssid_column.isin(evil_twin_bssids)].unique()
 
-        # Create dynamic keys for normal BSSIDs
+        # Merge df_airodump with normal BSSID to get corresponding ESSIDs
+        df_normal = df_airodump[df_airodump['BSSID'].isin(normal_bssid_column)]
+
         print("\nUnique BSSID Normal Instances:\n")
-        for idx, bssid in enumerate(normal_bssid_column, start=1):
+        for bssid in normal_bssid_column:
             bssid_upper = bssid.upper()
             df_normal_bssid = df_airodump[df_airodump['BSSID'] == bssid_upper]
             if not df_normal_bssid.empty:
@@ -86,34 +80,10 @@ def detect_evil_twin(filename):
                 essid = "Unknown"
             print(f"BSSID: {bssid} | SSID: {essid}")
 
-            # Create dynamic keys for normal BSSIDs
-            json_output['normal'][f'wifi{idx}'] = {'BSSID': bssid, 'SSID': essid}
-
-        return json_output
-
     except FileNotFoundError:
-        return {"error": f"File '{csv_filepath}' or '{airodump_filepath}' not found."}
+        print(f"Error: File '{csv_filepath}' or '{airodump_filepath}' not found.")
     except Exception as e:
-        return {"error": str(e)}
-
-def main():
-    # Dynamically set BASE_DIR to the directory where the script is located
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    
-    # Get the filename from the command-line arguments
-    if len(sys.argv) != 2:
-        print("Usage: python3 pickler.py <filename>")
-        sys.exit(1)
-
-    filename = sys.argv[1]
-    result = detect_evil_twin(filename)
-
-    # Write the result to a JSON file in the Captures directory
-    json_output_filepath = os.path.join(BASE_DIR, "../Captures", "flask_api.json")
-    with open(json_output_filepath, 'w') as json_file:
-        json.dump(result, json_file, indent=4)
-
-    print(f"\nOutput written to {json_output_filepath}")
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
