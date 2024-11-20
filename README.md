@@ -122,7 +122,8 @@ Whether you're setting up a Raspberry Pi for personal or professional use, RaspA
    ```bash
    chmod +x wifi_capture.sh check.sh
    ```
-Proof of Concept ( Videos )
-## Backend
+## Proof of Concept ( Videos )
+### Backend
 
-   
+### Frontend
+**This project uses `RaspAP` as the backend while replacing its original frontend with a custom setup named <a href="https://netaegis.ddns.net/" traget="=blank">Netaegis</a>. `Netaegis` is our Reseach project website.**
