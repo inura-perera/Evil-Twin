@@ -128,5 +128,11 @@ Whether you're setting up a Raspberry Pi for personal or professional use, RaspA
 ## Proof of Concept ( Videos )
 ### Backend
 
+https://github.com/user-attachments/assets/62baeb90-8b37-4ad9-a267-b881f103b716
+
 ### Frontend
-**This project uses `RaspAP` as the backend while replacing its original frontend with a custom setup named <a href="https://netaegis.ddns.net/" traget="=blank">Netaegis</a>. `Netaegis` is our Research project website.**
+**This project uses `RaspAP` as the backend while replacing its original frontend with a custom setup named Netaegis. `Netaegis` is our Research project product name.**
+
+https://github.com/user-attachments/assets/5f922242-270f-40a0-8172-9743ee351401
+
+
