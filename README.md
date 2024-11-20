@@ -56,3 +56,73 @@ The `Research-Evil_Twin_Detection.ipynb` notebook provides a detailed walkthroug
 | Naive Bayes | 53.5610 |
 
 ## Prediction Results on Real Wi-Fi Data
+### Linux Debian
+1. **Linux Packages**
+   - tcpdump
+   - tshark
+   - airodump-ng (aircrack-ng)
+   - python3
+      ```bash
+      sudo apt update && sudo apt install -y tcpdump tshark aircrack-ng python3
+      ```
+3. **Install the Requirements** :
+   - To Requirements need `python` and `pip`
+      ```bash
+      pip install -r requirements.txt
+      ```
+1. **Run `wifi_capture.sh`script**
+      
+## Raspap Configuration
+<a href="https://raspap.com/" traget="_blank">Raspap</a> is a simple yet powerful web-based interface that makes managing wireless access points (AP) on a Raspberry Pi easy. With RaspAP, you can quickly set up your Raspberry Pi as a Wi-Fi hotspot, allowing other devices to connect to your Pi over the network. It's designed to be lightweight, easy to install, and simple to use.
+
+Whether you're setting up a Raspberry Pi for personal or professional use, RaspAP offers an intuitive web interface to manage your wireless network settings, including SSID, password, and IP address configurations. It’s perfect for scenarios where you need a portable Wi-Fi hotspot, such as IoT projects, secure networks, or development environments. <sup><a href="https://github.com/RaspAP/raspap-webgui.git" traget="_blank">Source Code<a/></sup>
+
+### Requirements
+  - Raspberry Pi 4 with a Wi-Fi interface and 4GB+ ram.
+  - External Wi-fi adapter
+  - Raspbian or another compatible Raspberry Pi OS.
+
+### Features
+  - Web-based interface for easy management of your Wi-Fi AP.
+  - Supports WPA2 encryption to secure your wireless network.
+  - Simple configuration of SSID, password, and network settings.
+  - Built-in DHCP server for managing network assignments.
+  - Configurable for both 2.4GHz and 5GHz Wi-Fi bands (depending on hardware).
+  - Support for multiple network modes: Access Point, Router, and Bridge.
+  #### Added Feature
+  - Evil Twin Detection using Machine Learinng befor connect to Wi-Fi Network
+
+**Check the custom files in the `RaspAP` folder. To configure raspap system.**
+
+### Installation
+1. Clone the Project
+   ```bash
+   https://github.com/kirula0626/Evil-Twin-Detection-using-Machine-Learning.git
+   ```
+2. Move or Copy `Raspap/var/www/html/Evil-Twin-Detector' to 'var/www/html/'
+   ```bash
+   sudo mv /path/to/source/file /path/to/destination/
+   ```
+   ```bash
+   sudo  cp /path/to/source/file /path/to/destination/
+   ```
+   or
+
+   Create a Symbolic Link (Symlink)
+   ```bash
+   ln -s /path/to/original/folder /path/to/destination/
+   ```
+   
+3. Change ownership access (if needed)
+   - ownership must be same as `www/html/' files
+   ```bash
+   sudo chown -R [new_owner]:[new_group] /path/to/directory
+   ````
+4. Make scripts executable
+   ```bash
+   chmod +x wifi_capture.sh check.sh
+   ```
+Proof of Concept ( Videos )
+## Backend
+
+   
