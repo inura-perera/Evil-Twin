@@ -2,7 +2,7 @@
 ## Introduction
 An Evil Twin is a fake Wi-Fi network set up to trick people into connecting to it, thinking it’s a legitimate network, like one in a coffee shop or airport. Hackers create this network to steal personal information, such as passwords, credit card details, or emails, from those who connect. It works because it looks exactly like a real network, even using the same name. Once someone joins, their data can be monitored or stolen. It’s like sitting next to someone who secretly spies on everything you’re doing online. 
 
-<b>Always double-check Wi-Fi networks before connecting!</b>
+<b>Always double-check Wi-Fi networks before connecting! </b>
 
 Existing security measures for Wi-Fi networks often struggle to effectively detect and mitigate these sophisticated attacks. Traditional approaches rely heavily on signature-based detection and static rules, which lack adaptability and real-time effectiveness in open Wi-Fi settings. While machine learning (ML) has shown promise for enhancing network security, most current ML-based models remain theoretical and demonstrate high accuracy with offline datasets yet fail to deliver practical solutions in real-time scenarios.
 
@@ -46,7 +46,7 @@ The `Research-Evil_Twin_Detection.ipynb` notebook provides a detailed walkthroug
 #### Model Training
   - Three machine learning algorithms are used:
     - Random Forest
-    - K-Nearest Neighbors (KNN)
+    - K-Nearest Neighbours (KNN)
     - Naive Bayes
 #### Results
 | Model | Accuracy (%) |
@@ -54,6 +54,9 @@ The `Research-Evil_Twin_Detection.ipynb` notebook provides a detailed walkthroug
 | Random Forest | 99.9186 |
 | KNN | 82.1312 |
 | Naive Bayes | 53.5610 |
+
+## Conference Research Paper (IEEE Published)
+Link will be Available Soon
 
 ## Prediction Results on Real Wi-Fi Data
 ### Linux Debian
@@ -90,7 +93,7 @@ Whether you're setting up a Raspberry Pi for personal or professional use, RaspA
   - Configurable for both 2.4GHz and 5GHz Wi-Fi bands (depending on hardware).
   - Support for multiple network modes: Access Point, Router, and Bridge.
   #### Added Feature
-  - Evil Twin Detection using Machine Learinng befor connect to Wi-Fi Network
+  - Evil Twin Detection using Machine Learning before connect to Wi-Fi Network
 
 **Check the custom files in the `RaspAP` folder. To configure raspap system.**
 
@@ -120,10 +123,10 @@ Whether you're setting up a Raspberry Pi for personal or professional use, RaspA
    ````
 4. Make scripts executable
    ```bash
-   chmod +x wifi_capture.sh check.sh
+   sudo chmod +x wifi_capture.sh check.sh
    ```
 ## Proof of Concept ( Videos )
 ### Backend
 
 ### Frontend
-**This project uses `RaspAP` as the backend while replacing its original frontend with a custom setup named <a href="https://netaegis.ddns.net/" traget="=blank">Netaegis</a>. `Netaegis` is our Reseach project website.**
+**This project uses `RaspAP` as the backend while replacing its original frontend with a custom setup named <a href="https://netaegis.ddns.net/" traget="=blank">Netaegis</a>. `Netaegis` is our Research project website.**
