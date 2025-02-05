@@ -56,7 +56,7 @@ The `Research-Evil_Twin_Detection.ipynb` notebook provides a detailed walkthroug
 | Naive Bayes | 53.5610 |
 
 ## Conference Research Paper (IEEE Published)
-Link will be Available Soon
+https://ieeexplore.ieee.org/document/10857762 
 
 ## Prediction Results on Real Wi-Fi Data
 ### Linux Debian
